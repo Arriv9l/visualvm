@@ -40,6 +40,7 @@ public abstract class JDBCView extends DataView {
 
     static final String COLUMN_NAME = messages.getString("JDBCView_ColumnName"); // NOI18N
     static final String COLUMN_TOTALTIME = messages.getString("JDBCView_TimeColumnName"); // NOI18N
+    static final String COLUMN_TIMESTAMP = messages.getString("JDBCView_TimestampColumnName"); // NOI18N
     static final String COLUMN_INVOCATIONS = messages.getString("JDBCView_InvocationsColumnName"); // NOI18N
     static final String COLUMN_COMMANDS = messages.getString("JDBCView_ColumnCommands"); // NOI18N
     static final String COLUMN_TABLES = messages.getString("JDBCView_ColumnTables"); // NOI18N

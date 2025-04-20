@@ -59,6 +59,7 @@ public interface JdbcCCTProvider extends CCTProvider, FlatProfileProvider {
     }
 
     RuntimeMemoryCCTNode[] getStacksForSelects();
+    long getTimestamp(int selectId, long current);
     int getCommandType(int selectId);
     int getSQLCommand(int selectId);
     String[] getTables(int selectId);

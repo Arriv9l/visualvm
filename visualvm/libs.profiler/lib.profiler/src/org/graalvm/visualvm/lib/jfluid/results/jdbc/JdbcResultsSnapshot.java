@@ -28,6 +28,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 import java.util.logging.Level;
@@ -85,6 +86,9 @@ public class JdbcResultsSnapshot extends ResultsSnapshot {
 
     /** [1-nProfiledSelects] total time for select */
     long[] timePerSelectId;
+
+    /** [1-nProfiledSelects] timestamp for select */
+    long[] timestampPerSelectId;
 
     /** [1-nProfiledSelects] select type see JdbcCCTProvider.SQL* constants */
     int[] typeForSelectId;
@@ -147,6 +151,10 @@ public class JdbcResultsSnapshot extends ResultsSnapshot {
 
     public long[] getTimePerSelectId() {
         return timePerSelectId;
+    }
+
+    public long[] getTimestampPerSelectId() {
+        return timestampPerSelectId;
     }
 
     public int[] getTypeForSelectId() {
@@ -365,6 +373,7 @@ public class JdbcResultsSnapshot extends ResultsSnapshot {
 
             invocationsPerSelectId = new long[nProfiledSelects];
             timePerSelectId = new long[nProfiledSelects];
+            timestampPerSelectId = new long[nProfiledSelects];
             typeForSelectId = new int[nProfiledSelects];
             commandTypeForSelectId = new int[nProfiledSelects];
             tablesForSelectId = new String[nProfiledSelects][];
@@ -374,6 +383,7 @@ public class JdbcResultsSnapshot extends ResultsSnapshot {
                 selectNames[selectId] = fpc.getMethodNameAtRow(i);
                 invocationsPerSelectId[selectId] = fpc.getNInvocationsAtRow(i);
                 timePerSelectId[selectId] = fpc.getTotalTimeInMcs0AtRow(i);
+                timestampPerSelectId[selectId] = provider.getTimestamp(selectId, timeTaken);
                 typeForSelectId[selectId] = provider.getCommandType(selectId);
                 commandTypeForSelectId[selectId] = provider.getSQLCommand(selectId);
                 tablesForSelectId[selectId] = provider.getTables(selectId);

@@ -60,11 +60,7 @@ import org.graalvm.visualvm.lib.ui.swing.ProfilerTableContainer;
 import org.graalvm.visualvm.lib.ui.swing.ProfilerTreeTable;
 import org.graalvm.visualvm.lib.ui.swing.ProfilerTreeTableModel;
 import org.graalvm.visualvm.lib.ui.swing.SearchUtils;
-import org.graalvm.visualvm.lib.ui.swing.renderer.HideableBarRenderer;
-import org.graalvm.visualvm.lib.ui.swing.renderer.LabelRenderer;
-import org.graalvm.visualvm.lib.ui.swing.renderer.McsTimeRenderer;
-import org.graalvm.visualvm.lib.ui.swing.renderer.NumberPercentRenderer;
-import org.graalvm.visualvm.lib.ui.swing.renderer.NumberRenderer;
+import org.graalvm.visualvm.lib.ui.swing.renderer.*;
 
 /**
  *
@@ -125,13 +121,14 @@ abstract class JDBCTreeTableView extends JDBCView {
             int commandType = newData.getCommandTypeForSelectId()[i];
             String commandString = commandString(commandType);
             String[] sqlTables = newData.getTablesForSelectId()[i];
+            long timestamp = newData.getTimestampPerSelectId()[i];
             
             commands.add(commandString.toUpperCase(Locale.ENGLISH));
             tables.addAll(Arrays.asList(sqlTables));
             
             if (sqlFilter.passes(_names[i], commandString, sqlTables, statementType)) {
                 final int _i = i;
-                nodes.add(new SQLQueryNode(_names[i], _nTotalAllocObjects[i], _totalAllocObjectsSize[i], statementType, commandType, sqlTables) {
+                nodes.add(new SQLQueryNode(_names[i], _nTotalAllocObjects[i], _totalAllocObjectsSize[i], statementType, commandType, sqlTables, timestamp) {
                     PresoObjAllocCCTNode computeChildren() { return newData.createPresentationCCT(_i, false); }
                 });
             }
@@ -195,7 +192,8 @@ abstract class JDBCTreeTableView extends JDBCView {
     
     private HideableBarRenderer[] renderers;
     private McsTimeRenderer timeRenderer;
-    
+    private TimeStampRenderer timeStampRenderer;
+
     HideableBarRenderer.BarDiffMode barDiffMode() {
         return HideableBarRenderer.BarDiffMode.MODE_BAR_DIFF;
     }
@@ -230,9 +228,8 @@ abstract class JDBCTreeTableView extends JDBCView {
         treeTable.setMainColumn(0);
         treeTable.setFitWidthColumn(0);
         
-        treeTable.setSortColumn(1);
-        treeTable.setDefaultSortOrder(1, SortOrder.DESCENDING);
-        
+        treeTable.setSortColumn(7);
+
         renderers = new HideableBarRenderer[2];
         
         HideableBarRenderer.BarDiffMode barDiffMode = barDiffMode();
@@ -241,6 +238,7 @@ abstract class JDBCTreeTableView extends JDBCView {
         renderers[1] = new HideableBarRenderer(new NumberRenderer());
         renderers[1].setBarDiffMode(barDiffMode);
         timeRenderer = new McsTimeRenderer();
+        timeStampRenderer = new TimeStampRenderer();
         
         long refTime = 123456;
         renderers[0].setMaxValue(refTime);
@@ -248,8 +246,10 @@ abstract class JDBCTreeTableView extends JDBCView {
         
         treeTable.setTreeCellRenderer(new JDBCJavaNameRenderer());
         treeTable.setColumnRenderer(1, renderers[0]);
+        treeTable.setDefaultSortOrder(1, SortOrder.DESCENDING);
         treeTable.setColumnRenderer(2, renderers[1]);
-        
+        treeTable.setColumnVisibility(2, false);
+
         treeTable.setDefaultColumnWidth(1, renderers[0].getOptimalWidth());
         treeTable.setDefaultColumnWidth(2, renderers[1].getMaxNoBarWidth());
         
@@ -279,6 +279,11 @@ abstract class JDBCTreeTableView extends JDBCView {
         treeTable.setDefaultSortOrder(6, SortOrder.ASCENDING);
         treeTable.setDefaultColumnWidth(6, lr.getPreferredSize().width);
         treeTable.setColumnVisibility(6, false);
+
+        treeTable.setColumnRenderer(7, timeStampRenderer);
+        treeTable.setDefaultSortOrder(7, SortOrder.ASCENDING);
+        treeTable.setDefaultColumnWidth(7, lr.getPreferredSize().width * 2);
+        treeTable.setColumnVisibility(7, true);
 
         ProfilerTableContainer tableContainer = new ProfilerTableContainer(treeTable, false, null);
         
@@ -429,6 +434,8 @@ abstract class JDBCTreeTableView extends JDBCView {
                 return COLUMN_TABLES;
             } else if (columnIndex == 6) {
                 return COLUMN_STATEMENTS;
+            } else if (columnIndex == 7) {
+                return COLUMN_TIMESTAMP;
             }
             return null;
         }
@@ -448,12 +455,14 @@ abstract class JDBCTreeTableView extends JDBCView {
                 return String.class;
             } else if (columnIndex == 6) {
                 return String.class;
+            } else if (columnIndex == 7) {
+                return Long.class;
             }
             return Long.class;
         }
 
         public int getColumnCount() {
-            return 7;
+            return 8;
         }
 
         public Object getValueAt(TreeNode node, int columnIndex) {
@@ -489,6 +498,11 @@ abstract class JDBCTreeTableView extends JDBCView {
                 } else {
                     return "-";
                 }
+            } else if (columnIndex == 7) {
+                if (jdbcNode instanceof SQLQueryNode) {
+                    return ((SQLQueryNode)jdbcNode).getTimestamp();
+                }
+                return -1;
             }
             return null;
         }
@@ -518,11 +532,13 @@ abstract class JDBCTreeTableView extends JDBCView {
         private final int statementType;
         private final int commandType;
         private final String[] tables;
-        SQLQueryNode(String className, long nTotalAllocObjects, long totalAllocObjectsSize, int statementType, int commandType, String[] tables) {
+        private final long timestamp;
+        SQLQueryNode(String className, long nTotalAllocObjects, long totalAllocObjectsSize, int statementType, int commandType, String[] tables, long timestamp) {
             super(className, nTotalAllocObjects, totalAllocObjectsSize);
             this.statementType = statementType;
             this.commandType = commandType;
             this.tables = tables;
+            this.timestamp = timestamp;
         }
         public CCTNode[] getChildren() {
             if (children == null) {
@@ -544,6 +560,7 @@ abstract class JDBCTreeTableView extends JDBCView {
         int getStatementType() { return statementType; }
         int getCommandType() { return commandType; }
         String[] getTables() { return tables; }
+        long getTimestamp() { return timestamp; }
     }
     
 }

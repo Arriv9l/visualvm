@@ -94,5 +94,13 @@ public final class Formatters {
         }
         return BYTES_FORMAT;
     }
-    
+
+    private static Format TIMESTAMP_FORMAT;
+
+    public static Format timestampFormat() {
+        if (TIMESTAMP_FORMAT == null) {
+            TIMESTAMP_FORMAT = new MessageFormat(BUNDLE.getString("Formatters.TimestampFormat")); // NOI18N
+        }
+        return TIMESTAMP_FORMAT;
+    }
 }

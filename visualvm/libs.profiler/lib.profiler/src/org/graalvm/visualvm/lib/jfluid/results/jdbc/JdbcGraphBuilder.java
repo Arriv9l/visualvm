@@ -781,6 +781,20 @@ public class JdbcGraphBuilder extends BaseCallGraphBuilder implements CPUProfili
     }
 
     @Override
+    public long getTimestamp(int selectId, long current) {
+        Select sel = idsToSelect.get(Integer.valueOf(selectId));
+        if (sel != null) {
+            Long timestamp = sel.getTimestamp();
+            if (timestamp == null) {
+                sel.setTimestamp(current);
+                return current;
+            }
+            return timestamp;
+        }
+        return -1;
+    }
+
+    @Override
     public int getCommandType(int selectId) {
         Select sel = idsToSelect.get(Integer.valueOf(selectId));
         if (sel != null) {
@@ -878,6 +892,7 @@ public class JdbcGraphBuilder extends BaseCallGraphBuilder implements CPUProfili
         private  int commandType;
         private final String select;
         private String[] tables;
+        private Long timestamp;
         
         Select(int t, String s) {
             type = t;
@@ -894,6 +909,14 @@ public class JdbcGraphBuilder extends BaseCallGraphBuilder implements CPUProfili
 
         private void setTables(String[] t) {
             tables = t;
+        }
+
+        public void setTimestamp(long timestamp) {
+            this.timestamp = timestamp;
+        }
+
+        public Long getTimestamp() {
+            return timestamp;
         }
 
         private int getCommandType() {
@@ -931,7 +954,7 @@ public class JdbcGraphBuilder extends BaseCallGraphBuilder implements CPUProfili
             if (!Objects.equals(this.select, other.select)) {
                 return false;
             }
-            return true;
+            return false;
         }
         
     }
