@@ -267,6 +267,7 @@ public class JdbcResultsSnapshot extends ResultsSnapshot {
         selectNames = new String[nProfiledSelects];
         invocationsPerSelectId = new long[nProfiledSelects];
         timePerSelectId = new long[nProfiledSelects];
+        timestampPerSelectId = new long[nProfiledSelects];
         typeForSelectId = new int[nProfiledSelects];
         commandTypeForSelectId = new int[nProfiledSelects];
         tablesForSelectId = new String[nProfiledSelects][];
@@ -275,6 +276,7 @@ public class JdbcResultsSnapshot extends ResultsSnapshot {
             selectNames[i] = in.readUTF();
             invocationsPerSelectId[i] = in.readLong();
             timePerSelectId[i] = in.readLong();
+            timestampPerSelectId[i] = in.readLong();
             typeForSelectId[i] = in.readInt();
             commandTypeForSelectId[i] = in.readInt();
             tablesForSelectId[i] = new String[in.readInt()];
@@ -319,6 +321,7 @@ public class JdbcResultsSnapshot extends ResultsSnapshot {
             out.writeUTF(selectNames[i]);
             out.writeLong(invocationsPerSelectId[i]);
             out.writeLong(timePerSelectId[i]);
+            out.writeLong(timestampPerSelectId[i]);
             out.writeInt(typeForSelectId[i]);
             out.writeInt(commandTypeForSelectId[i]);
             out.writeInt(tablesForSelectId[i].length);
